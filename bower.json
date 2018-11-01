@@ -1,0 +1,17 @@
+{
+  "name": "sass turbo boiler",
+  "description": "make easy template",
+  "main": "gulpfile.babel.js",
+  "authors": [
+    "nusantaraid"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/zurb/foundation-zurb-template",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

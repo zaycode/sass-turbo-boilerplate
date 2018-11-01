@@ -2,7 +2,9 @@
 node_modules
 npm-debug.log
 bower_components
+src/assets/vendors
 dist
 *.swp
 .cache
 .idea
+package-lock.json

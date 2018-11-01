@@ -6,14 +6,14 @@ import browser       from 'browser-sync';
 import gulp          from 'gulp';
 import panini        from 'panini';
 import rimraf        from 'rimraf';
-import sherpa        from 'style-sherpa';
 import yaml          from 'js-yaml';
 import fs            from 'fs';
 import webpackStream from 'webpack-stream';
 import webpack2      from 'webpack';
 import named         from 'vinyl-named';
-import uncss         from 'uncss';
 import autoprefixer  from 'autoprefixer';
+import rename         from 'gulp-rename';
+
 
 // Load all Gulp plugins into one variable
 const $ = plugins();
@@ -32,7 +32,7 @@ function loadConfig() {
 // Build the "dist" folder by running all of the below tasks
 // Sass must be run later so UnCSS can search for used classes in the others assets.
 gulp.task('build',
- gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass, styleGuide));
+ gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass));
 
 // Build the site, run the server, and watch for file changes
 gulp.task('default',
@@ -70,13 +70,6 @@ function resetPages(done) {
   done();
 }
 
-// Generate a style guide from the Markdown content and HTML template in styleguide/
-function styleGuide(done) {
-  sherpa('src/styleguide/index.md', {
-    output: PATHS.dist + '/styleguide.html',
-    template: 'src/styleguide/template.html'
-  }, done);
-}
 
 // Compile Sass into CSS
 // In production, the CSS is compressed
@@ -90,16 +83,23 @@ function sass() {
     // PRODUCTION && uncss.postcssPlugin(UNCSS_OPTIONS),
   ].filter(Boolean);
 
-  return gulp.src('src/assets/scss/app.scss')
+  return gulp.src('src/scss/app.scss')
     .pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass
     })
-      .on('error', $.sass.logError))
+      
+    .on('error', $.sass.logError))
     .pipe($.postcss(postCssPlugins))
     .pipe($.if(PRODUCTION, $.cleanCss({ compatibility: 'ie9' })))
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
+    
+    
+    .pipe($.cleanCss({ compatibility: 'ie9' }))
+    .pipe($.rename('app.min.css'))
+    .pipe(gulp.dest(PATHS.dist + '/assets/css'))
+    
     .pipe(browser.reload({ stream: true }));
 }
 
@@ -139,11 +139,19 @@ function javascript() {
 // Copy images to the "dist" folder
 // In production, the images are compressed
 function images() {
-  return gulp.src('src/assets/img/**/*')
+  return gulp.src('src/assets/images/**/*')
     .pipe($.if(PRODUCTION, $.imagemin([
       $.imagemin.jpegtran({ progressive: true }),
     ])))
-    .pipe(gulp.dest(PATHS.dist + '/assets/img'));
+    .pipe(gulp.dest(PATHS.dist + '/assets/images'));  
+}
+
+
+// Copy images to the "dist" folder
+function vendors() {
+  return gulp.src('src/assets/vendors/**/*')
+      .pipe(gulp.dest(PATHS.dist + '/assets/vendors'));
+
 }
 
 // Start a server with BrowserSync to preview the site in
@@ -166,8 +174,9 @@ function watch() {
   gulp.watch('src/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/assets/scss/**/*.scss').on('all', sass);
+  gulp.watch('src/scss/**/*.scss').on('all', sass);
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
-  gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
-  gulp.watch('src/styleguide/**').on('all', gulp.series(styleGuide, browser.reload));
+  gulp.watch('src/assets/images/**/*').on('all', gulp.series(images, browser.reload));
+  gulp.watch('src/assets/vendors/**/*').on('all', gulp.series(vendors, browser.reload));
+ 
 }
