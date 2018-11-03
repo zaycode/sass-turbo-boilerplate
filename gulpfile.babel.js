@@ -18,8 +18,6 @@ import rename         from 'gulp-rename';
 // Load all Gulp plugins into one variable
 const $ = plugins();
 
-// Check for --production flag
-const PRODUCTION = !!(yargs.argv.production);
 
 // Load settings from settings.yml
 const { COMPATIBILITY, PORT, UNCSS_OPTIONS, PATHS } = loadConfig();
@@ -53,13 +51,13 @@ function copy() {
 
 // Copy page templates into finished HTML files
 function pages() {
-  return gulp.src('src/pages/**/*.{html,hbs,handlebars}')
+  return gulp.src('src/templates/*.{html,hbs,handlebars}')
     .pipe(panini({
-      root: 'src/pages/',
-      layouts: 'src/layouts/',
-      partials: 'src/partials/',
-      data: 'src/data/',
-      helpers: 'src/helpers/'
+      root: 'src/templates/',
+      layouts: 'src/templates/layouts/',
+      partials: 'src/templates/partials/',
+      data: 'src/templates/data/',
+      helpers: 'src/templates/helpers/'
     }))
     .pipe(gulp.dest(PATHS.dist));
 }
@@ -72,15 +70,13 @@ function resetPages(done) {
 
 
 // Compile Sass into CSS
-// In production, the CSS is compressed
+
 function sass() {
 
   const postCssPlugins = [
-    // Autoprefixer
+   
     autoprefixer({ browsers: COMPATIBILITY }),
 
-    // UnCSS - Uncomment to remove unused styles in production
-    // PRODUCTION && uncss.postcssPlugin(UNCSS_OPTIONS),
   ].filter(Boolean);
 
   return gulp.src('src/scss/app.scss')
@@ -91,20 +87,17 @@ function sass() {
       
     .on('error', $.sass.logError))
     .pipe($.postcss(postCssPlugins))
-    .pipe($.if(PRODUCTION, $.cleanCss({ compatibility: 'ie9' })))
-    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
+    .pipe( $.sourcemaps.write())
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
-    
-    
+
     .pipe($.cleanCss({ compatibility: 'ie9' }))
     .pipe($.rename('app.min.css'))
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
-    
     .pipe(browser.reload({ stream: true }));
 }
 
 let webpackConfig = {
-  mode: (PRODUCTION ? 'production' : 'development'),
+  
   module: {
     rules: [
       {
@@ -119,30 +112,27 @@ let webpackConfig = {
       }
     ]
   },
-  devtool: !PRODUCTION && 'source-map'
+  devtool:  'source-map'
 }
 
 // Combine JavaScript into one file
-// In production, the file is minified
+
 function javascript() {
   return gulp.src(PATHS.entries)
     .pipe(named())
     .pipe($.sourcemaps.init())
     .pipe(webpackStream(webpackConfig, webpack2))
-    .pipe($.if(PRODUCTION, $.uglify()
-      .on('error', e => { console.log(e); })
-    ))
-    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
+    .pipe( $.sourcemaps.write())
     .pipe(gulp.dest(PATHS.dist + '/assets/js'));
 }
 
 // Copy images to the "dist" folder
-// In production, the images are compressed
+
 function images() {
   return gulp.src('src/assets/images/**/*')
-    .pipe($.if(PRODUCTION, $.imagemin([
+    .pipe($.imagemin([
       $.imagemin.jpegtran({ progressive: true }),
-    ])))
+    ]))
     .pipe(gulp.dest(PATHS.dist + '/assets/images'));  
 }
 
@@ -154,7 +144,6 @@ function vendors() {
 
 }
 
-// Start a server with BrowserSync to preview the site in
 function server(done) {
   browser.init({
     server: PATHS.dist, port: PORT
@@ -170,10 +159,10 @@ function reload(done) {
 // Watch for changes to static assets, pages, Sass, and JavaScript
 function watch() {
   gulp.watch(PATHS.assets, copy);
-  gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, browser.reload));
-  gulp.watch('src/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
+  gulp.watch('src/templates/*.html').on('all', gulp.series(pages, browser.reload));
+  gulp.watch('src/templates/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
+  gulp.watch('src/templates/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
+  gulp.watch('src/templates/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/scss/**/*.scss').on('all', sass);
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
   gulp.watch('src/assets/images/**/*').on('all', gulp.series(images, browser.reload));
