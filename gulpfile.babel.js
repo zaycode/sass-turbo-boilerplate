@@ -18,6 +18,7 @@ import rename         from 'gulp-rename';
 // Load all Gulp plugins into one variable
 const $ = plugins();
 
+const PRODUCTION = !!(yargs.argv.production);
 
 // Load settings from settings.yml
 const { COMPATIBILITY, PORT, UNCSS_OPTIONS, PATHS } = loadConfig();
@@ -97,7 +98,7 @@ function sass() {
 }
 
 let webpackConfig = {
-  
+  mode: (PRODUCTION ? 'production' : 'development'),
   module: {
     rules: [
       {
@@ -112,28 +113,30 @@ let webpackConfig = {
       }
     ]
   },
-  devtool:  'source-map'
+  devtool: !PRODUCTION && 'source-map'
 }
 
 // Combine JavaScript into one file
-
 function javascript() {
   return gulp.src(PATHS.entries)
     .pipe(named())
     .pipe($.sourcemaps.init())
     .pipe(webpackStream(webpackConfig, webpack2))
-    .pipe( $.sourcemaps.write())
+    .pipe($.if(PRODUCTION, $.uglify()
+      .on('error', e => { console.log(e); })
+    ))
+    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist + '/assets/js'));
 }
 
-// Copy images to the "dist" folder
 
+// Copy images to the "dist" folder
 function images() {
   return gulp.src('src/assets/images/**/*')
-    .pipe($.imagemin([
+    .pipe($.if(PRODUCTION, $.imagemin([
       $.imagemin.jpegtran({ progressive: true }),
-    ]))
-    .pipe(gulp.dest(PATHS.dist + '/assets/images'));  
+    ])))
+    .pipe(gulp.dest(PATHS.dist + '/assets/images'));
 }
 
 
