@@ -84,13 +84,12 @@ function sass() {
     .pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass
-    })
-      
-    .on('error', $.sass.logError))
+    }).on('error', $.sass.logError))
+    
     .pipe($.postcss(postCssPlugins))
     .pipe( $.sourcemaps.write())
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
-
+    
     .pipe($.cleanCss({ compatibility: 'ie9' }))
     .pipe($.rename('app.min.css'))
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))

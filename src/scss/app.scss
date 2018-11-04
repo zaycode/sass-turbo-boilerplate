@@ -1,4 +1,6 @@
-h1{
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 15px,
-}
+@charset 'utf-8';
+// Include the boostrap library
+
+@import "../vendors/bootstrap/dist/css/bootstrap.css";
+
+@import './web/layout';
