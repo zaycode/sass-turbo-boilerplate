@@ -1,7 +1,7 @@
 {
   "name": "sass-turbo-boilerplate",
   "version": "1.0.0",
-  "description": "A professional front-end template for building fast, structured, and adaptable template site. with gulp,bower and panini",
+  "description": "A professional front-end template for building fast, structured, and adaptable template site. with gulp",
   "main": "gulpfile.babel.js",
   "scripts": {
     "start": "gulp",
@@ -11,8 +11,15 @@
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^4.1.3",
+    "chart.js": "chartjs#^2.7.3",
+    "datatables": "^1.10.18",
+    "dropzone": "^5.5.0",
     "jquery": "^3.3.1",
-    "owl.carousel": "^2.3.4"
+    "jquery-ui": "jqueryui#^1.12.1",
+    "modernizr": "^3.6.0",
+    "multiselect": "^0.9.12",
+    "owl.carousel": "^2.3.4",
+    "select2": "^4.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
@@ -21,6 +28,7 @@
     "autoprefixer": "^9.1.5",
     "babel-loader": "^8.0.4",
     "browser-sync": "^2.10.0",
+    "copy-node-modules": "^1.0.8",
     "gulp": "^4.0.0",
     "gulp-babel": "^8.0.0",
     "gulp-clean-css": "^3.10.0",
@@ -30,6 +38,7 @@
     "gulp-if": "^2.0.0",
     "gulp-imagemin": "^4.1.0",
     "gulp-load-plugins": "^1.1.0",
+    "gulp-npm-dist": "^1.0.2",
     "gulp-postcss": "^8.0.0",
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.1",

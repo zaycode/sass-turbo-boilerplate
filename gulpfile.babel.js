@@ -12,8 +12,8 @@ import webpackStream from 'webpack-stream';
 import webpack2      from 'webpack';
 import named         from 'vinyl-named';
 import autoprefixer  from 'autoprefixer';
-import rename         from 'gulp-rename';
-
+import rename        from 'gulp-rename';
+var npmDist = require('gulp-npm-dist');
 
 // Load all Gulp plugins into one variable
 const $ = plugins();
@@ -31,7 +31,7 @@ function loadConfig() {
 // Build the "dist" folder by running all of the below tasks
 // Sass must be run later so UnCSS can search for used classes in the others assets.
 gulp.task('build',
- gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass));
+ gulp.series(clean, gulp.parallel(pages, javascript, images,vendors, copy), sass));
 
 // Build the site, run the server, and watch for file changes
 gulp.task('default',
@@ -138,12 +138,10 @@ function images() {
     .pipe(gulp.dest(PATHS.dist + '/assets/images'));
 }
 
-
-// Copy images to the "dist" folder
+// Copy vendors to the "dist" folder
 function vendors() {
-  return gulp.src('src/assets/vendors/**/*')
-      .pipe(gulp.dest(PATHS.dist + '/assets/vendors'));
-
+  return gulp.src(npmDist(), {base:'./node_modules'})
+  .pipe(gulp.dest('./dist/assets/vendors'));
 }
 
 function server(done) {
@@ -165,7 +163,7 @@ function watch() {
   gulp.watch('src/templates/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/templates/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/templates/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/scss/**/*.scss').on('all', sass);
+  gulp.watch('src/scss/**/*.scss').on('all', gulp.series(sass,browser.reload));
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
   gulp.watch('src/assets/images/**/*').on('all', gulp.series(images, browser.reload));
   gulp.watch('src/assets/vendors/**/*').on('all', gulp.series(vendors, browser.reload));
