@@ -13,7 +13,7 @@ import webpack2      from 'webpack';
 import named         from 'vinyl-named';
 import autoprefixer  from 'autoprefixer';
 import rename        from 'gulp-rename';
-var npmDist = require('gulp-npm-dist');
+import dependencies  from 'gulp-npm-dist';
 
 // Load all Gulp plugins into one variable
 const $ = plugins();
@@ -140,8 +140,14 @@ function images() {
 
 // Copy vendors to the "dist" folder
 function vendors() {
-  return gulp.src(npmDist(), {base:'./node_modules'})
-  .pipe(gulp.dest('./dist/assets/vendors'));
+  return gulp.src($.npmDist({ 
+    copyUnminified: true, 
+    excludes: ['excludes.txt'] 
+  }), { base: './node_modules' })
+  .pipe(rename(function(path) {
+    path.dirname = path.dirname.replace(/\/dist/, '').replace(/\\dist/, '');
+  }))
+  .pipe(gulp.dest(PATHS.dist + '/assets/vendors'));
 }
 
 function server(done) {
